@@ -1,7 +1,5 @@
 // player.js
-import { Weapon } from "./weapon.js";
-
-export class Player {
+class Player {
   constructor(x, y) {
     this.x = x;
     this.y = y;

@@ -1,6 +1,6 @@
 // hud.js
 
-export class HUD {
+class HUD {
   constructor(player) {
     this.player = player;
   }

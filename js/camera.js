@@ -1,4 +1,4 @@
-export class Camera {
+class Camera {
   constructor(player, screenWidth, mapWidth) {
     this.player = player;
     this.screenWidth = screenWidth;

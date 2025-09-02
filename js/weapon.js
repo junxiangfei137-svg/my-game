@@ -1,6 +1,6 @@
 // weapon.js
 
-export class Weapon {
+class Weapon {
   constructor(
     name,
     damage,

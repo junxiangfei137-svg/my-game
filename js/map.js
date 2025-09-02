@@ -1,4 +1,4 @@
-export class GameMap {
+class GameMap {
   constructor() {
     this.image = new Image();
     this.image.src = "./assets/longmap.png"; // 背景图路径

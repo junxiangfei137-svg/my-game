@@ -1,8 +1,3 @@
-import { Camera } from "./camera.js";
-import { GameMap } from "./map.js";
-import { Player } from "./player.js";
-import { HUD } from "./hud.js";
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
