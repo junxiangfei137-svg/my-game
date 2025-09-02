@@ -33,7 +33,7 @@ const monsters = [
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  player.update(Input.down, Input.pressed); // ✅ 传入两类输入
+  player.update(Input.down, Input.pressed, monsters); // ✅ 传入两类输入
 
   // 玩家攻击怪物
   player.attackMonsters(monsters);
@@ -55,6 +55,11 @@ function gameLoop() {
   }
 
   hud.draw(ctx, canvas.width, canvas.height);
+  // 渲染逻辑...
+
+  // ✅ 本帧结束后清除 pressed 边沿
+  Input.pressed = {};
+
   requestAnimationFrame(gameLoop);
 }
 

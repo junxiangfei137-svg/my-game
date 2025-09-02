@@ -20,58 +20,58 @@ class Weapon {
     this.height = height;
 
     this.hitbox = null;
-    this.hasHit = false; // ✅ 新增：是否已经命中过
+    this.hasHit = false; // ✅ 攻击期间是否命中过
   }
 
-  attack(player) {
-    const x = player.facingRight
-      ? player.x + this.offsetX
-      : player.x - this.offsetX - this.width;
+  /** ✅ 在关键攻击帧调用，生成一次 hitbox */
+  createHitbox(player) {
+    // 以人物中心为基准
+    const centerX = player.x + player.width / 2;
+    const centerY = player.y + player.height / 2;
 
-    const y = player.y + this.offsetY;
+    const x = player.facingRight
+      ? centerX + this.offsetX - this.width / 2
+      : centerX - this.offsetX - this.width / 2;
+
+    const y = centerY + this.offsetY - this.height / 2;
 
     this.hitbox = { x, y, width: this.width, height: this.height };
-    this.hasHit = false; // ✅ 每次攻击开始时重置
+    this.hasHit = false; // 每次攻击重置
+  }
 
-    console.log(
-      `${player.name || "Player"} 使用 ${this.name} 攻击！ 伤害: ${this.damage}`
-    );
+  /** ✅ 攻击帧结束时清除 hitbox */
+  clearHitbox() {
+    this.hitbox = null;
   }
 
   draw(ctx, player, cameraX, debug = false) {
-    if (!this.sprite.complete || this.sprite.naturalWidth === 0) return;
+    if (!this.hitbox) return;
 
-    const x = player.facingRight
-      ? player.x - cameraX + this.offsetX
-      : player.x - cameraX - this.offsetX - this.width;
+    const x = this.hitbox.x - cameraX;
+    const y = this.hitbox.y;
 
-    const y = player.y + this.offsetY;
-
-    ctx.save();
-    if (!player.facingRight) {
-      ctx.scale(-1, 1);
-      ctx.drawImage(this.sprite, -(x + this.width), y, this.width, this.height);
-    } else {
-      ctx.drawImage(this.sprite, x, y, this.width, this.height);
+    if (this.sprite.complete && this.sprite.naturalWidth > 0) {
+      ctx.save();
+      if (!player.facingRight) {
+        ctx.scale(-1, 1);
+        ctx.drawImage(
+          this.sprite,
+          -(x + this.width),
+          y,
+          this.width,
+          this.height
+        );
+      } else {
+        ctx.drawImage(this.sprite, x, y, this.width, this.height);
+      }
+      ctx.restore();
     }
-    ctx.restore();
 
-    // Debug hitbox
-    if (debug && this.hitbox) {
+    if (debug) {
       ctx.fillStyle = "rgba(0, 255, 0, 0.3)";
-      ctx.fillRect(
-        this.hitbox.x - cameraX,
-        this.hitbox.y,
-        this.hitbox.width,
-        this.hitbox.height
-      );
+      ctx.fillRect(x, y, this.width, this.height);
       ctx.strokeStyle = "lime";
-      ctx.strokeRect(
-        this.hitbox.x - cameraX,
-        this.hitbox.y,
-        this.hitbox.width,
-        this.hitbox.height
-      );
+      ctx.strokeRect(x, y, this.width, this.height);
     }
   }
 }

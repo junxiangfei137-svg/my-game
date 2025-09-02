@@ -17,7 +17,7 @@ class Player {
     this.sprite = new Image();
     this.sprite.src = "./assets/player.png";
 
-    // 动作动画表（假设 spriteSheet 每行一个动作）
+    // 动作动画表
     this.animations = {
       idle: { row: 0, frames: 1 },
       run: { row: 1, frames: 6 },
@@ -28,12 +28,16 @@ class Player {
     this.currentAction = "idle";
     this.frameIndex = 0;
     this.frameTick = 0;
-    this.frameSpeed = 10; // 数字越小动画越快
+    this.frameSpeed = 10; // 普通动作的动画速度
 
     // 攻击状态
     this.isAttacking = false;
     this.attackFrame = 0;
     this.attackFrames = 5;
+
+    // ✅ 新增：攻击帧节奏控制
+    this.attackFrameTick = 0;
+    this.attackFrameSpeed = 10; // 数字越大攻击越慢
 
     // 武器系统
     this.weapons = [
@@ -46,6 +50,7 @@ class Player {
     // Debug
     this.debug = true;
   }
+
   attackMonsters(monsters) {
     if (!this.currentWeapon || !this.isAttacking) return;
 
@@ -56,8 +61,8 @@ class Player {
           this.isColliding(this.currentWeapon.hitbox, monster)
         ) {
           monster.takeDamage(this.currentWeapon.damage);
-          this.currentWeapon.hasHit = true; // ✅ 一次攻击动作只触发一次
-          break; // 命中一个怪物就退出（如果要群攻可以去掉）
+          this.currentWeapon.hasHit = true; // 一次攻击动作只触发一次
+          break;
         }
       }
     }
@@ -79,8 +84,54 @@ class Player {
     console.log("切换武器 → " + this.currentWeapon.name);
   }
 
-  update(keys, pressed) {
-    // 移动（AD / 方向键）
+  update(keys, pressed, monsters) {
+    // 攻击输入
+    if (pressed["j"] && !this.isAttacking) {
+      this.isAttacking = true;
+      this.attackFrame = 0;
+      this.attackFrameTick = 0;
+      this.currentAction = "attack";
+      pressed["j"] = false;
+    }
+
+    // 攻击状态处理（锁定动作）
+    if (this.isAttacking) {
+      // 攻击帧推进
+      this.attackFrameTick++;
+      if (this.attackFrameTick >= this.attackFrameSpeed) {
+        this.attackFrameTick = 0;
+        this.attackFrame++;
+
+        // 攻击关键帧触发
+        if (this.attackFrame === 2 && this.currentWeapon) {
+          this.currentWeapon.createHitbox(this);
+        }
+        if (this.attackFrame === 3 && this.currentWeapon) {
+          this.attackMonsters(monsters);
+        }
+        if (this.attackFrame >= this.attackFrames) {
+          this.isAttacking = false;
+          if (this.currentWeapon) this.currentWeapon.clearHitbox();
+          this.currentAction = this.grounded ? "idle" : "jump";
+          this.frameIndex = 0; // 重置普通动画
+          this.frameTick = 0;
+        }
+      }
+
+      // 攻击动画帧推进（同步显示）
+      const anim = this.animations["attack"];
+      this.frameTick++;
+      if (this.frameTick >= this.frameSpeed) {
+        this.frameTick = 0;
+        this.frameIndex++;
+        if (this.frameIndex >= anim.frames) this.frameIndex = 0;
+      }
+
+      // 攻击期间直接跳过其他动作
+      return;
+    }
+
+    // 🔹 非攻击状态才处理移动、跳跃、切换武器
     if (keys["ArrowLeft"] || keys["a"]) {
       this.vx = -2;
       this.facingRight = false;
@@ -91,13 +142,17 @@ class Player {
       this.vx = 0;
     }
 
-    // 跳跃
     if ((keys[" "] || keys["w"]) && this.grounded) {
       this.vy = -8;
       this.grounded = false;
     }
 
-    // 重力
+    if (pressed["q"]) {
+      this.switchWeapon();
+      pressed["q"] = false;
+    }
+
+    // 重力和位置更新
     this.vy += 0.5;
     this.y += this.vy;
     if (this.y >= 300) {
@@ -105,51 +160,19 @@ class Player {
       this.vy = 0;
       this.grounded = true;
     }
-
-    // 移动更新
     this.x += this.vx;
 
-    // 攻击
-    if (pressed["j"] && !this.isAttacking) {
-      this.isAttacking = true;
-      this.attackFrame = 0;
-      this.currentAction = "attack";
-      if (this.currentWeapon) this.currentWeapon.attack(this);
-      pressed["j"] = false;
-    }
+    // 更新动画
+    if (!this.grounded) this.currentAction = "jump";
+    else if (this.vx !== 0) this.currentAction = "run";
+    else this.currentAction = "idle";
 
-    // 切换武器（Q键）
-    if (pressed["q"]) {
-      this.switchWeapon();
-      pressed["q"] = false; // 防止长按快速切换
-    }
-
-    // --------------------------
-    // 状态机：决定 currentAction
-    // --------------------------
-    if (this.isAttacking) {
-      // 攻击时不打断动画
-      this.attackFrame++;
-      if (this.attackFrame >= this.attackFrames) {
-        this.isAttacking = false;
-        this.currentAction = this.grounded ? "idle" : "jump";
-      }
-    } else if (!this.grounded) {
-      this.currentAction = "jump";
-    } else if (this.vx !== 0) {
-      this.currentAction = "run";
-    } else {
-      this.currentAction = "idle";
-    }
-
-    // 动画帧推进
     this.frameTick++;
     if (this.frameTick >= this.frameSpeed) {
       this.frameTick = 0;
       this.frameIndex++;
-      if (this.frameIndex >= this.animations[this.currentAction].frames) {
-        this.frameIndex = 0;
-      }
+      const anim = this.animations[this.currentAction];
+      if (this.frameIndex >= anim.frames) this.frameIndex = 0;
     }
   }
 
@@ -169,7 +192,7 @@ class Player {
         sx,
         sy,
         frameW,
-        frameH, // 裁切
+        frameH,
         -(this.x - cameraX + this.width),
         this.y,
         this.width,
@@ -181,7 +204,7 @@ class Player {
         sx,
         sy,
         frameW,
-        frameH, // 裁切
+        frameH,
         this.x - cameraX,
         this.y,
         this.width,
@@ -190,39 +213,18 @@ class Player {
     }
     ctx.restore();
 
-    // 绘制武器（攻击时闪现）
-    if (this.currentWeapon && this.isAttacking) {
-      if (this.attackFrame >= 1 && this.attackFrame <= 2) {
-        this.currentWeapon.draw(ctx, this, cameraX, this.debug);
-      }
+    // 绘制武器（只有攻击关键帧才绘制）
+    if (this.currentWeapon && this.currentWeapon.hitbox) {
+      this.currentWeapon.draw(ctx, this, cameraX, this.debug);
     }
 
-    // Debug 信息
+    // Debug
     if (this.debug) {
       ctx.fillStyle = "white";
       ctx.font = "14px monospace";
       ctx.fillText(`Action: ${this.currentAction}`, 10, 20);
       ctx.fillText(`Frame: ${this.frameIndex}`, 10, 40);
       ctx.fillText(`AttackFrame: ${this.attackFrame}`, 10, 60);
-      ctx.fillText(
-        `Pos: (${Math.floor(this.x)}, ${Math.floor(this.y)})`,
-        10,
-        80
-      );
-      ctx.fillText(
-        `Vel: (${this.vx.toFixed(2)}, ${this.vy.toFixed(2)})`,
-        10,
-        100
-      );
-      ctx.fillText(`Facing: ${this.facingRight ? "Right" : "Left"}`, 10, 120);
-      ctx.fillText(`Grounded: ${this.grounded}`, 10, 140);
-      if (this.currentWeapon) {
-        ctx.fillText(
-          `Weapon: ${this.currentWeapon.name} (DMG:${this.currentWeapon.damage})`,
-          10,
-          160
-        );
-      }
     }
   }
 }
