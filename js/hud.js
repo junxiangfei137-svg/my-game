@@ -7,15 +7,42 @@ class HUD {
 
   draw(ctx, canvasWidth, canvasHeight) {
     const hudX = 20;
-    const hudY = canvasHeight - 80;
-    const boxWidth = 200;
-    const boxHeight = 60;
+    const hudY = canvasHeight - 100;
+    const boxWidth = 220;
+    const boxHeight = 100;
 
-    // 背景框
+    // HUD 背景框
     ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
     ctx.fillRect(hudX, hudY, boxWidth, boxHeight);
 
-    // 当前武器
+    // ===== 血条部分 =====
+    const barX = hudX + 10;
+    const barY = hudY + 10;
+    const barWidth = 180;
+    const barHeight = 20;
+
+    // 血条背景
+    ctx.fillStyle = "red";
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+
+    // 血条当前值
+    const healthPercent = Math.max(
+      0,
+      this.player.health / this.player.maxHealth
+    );
+    ctx.fillStyle = "limegreen";
+    ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+
+    // 血量文字
+    ctx.fillStyle = "white";
+    ctx.font = "14px monospace";
+    ctx.fillText(
+      `HP: ${this.player.health}/${this.player.maxHealth}`,
+      barX + 60,
+      barY + 15
+    );
+
+    // ===== 武器部分 =====
     if (
       this.player.currentWeapon &&
       this.player.currentWeapon.sprite.complete
@@ -23,20 +50,19 @@ class HUD {
       ctx.drawImage(
         this.player.currentWeapon.sprite,
         hudX + 10,
-        hudY + 10,
+        hudY + 40,
         40,
         40
       );
     }
 
-    // 武器文字
     ctx.fillStyle = "white";
     ctx.font = "16px monospace";
     if (this.player.currentWeapon) {
       ctx.fillText(
         `${this.player.currentWeapon.name} (DMG:${this.player.currentWeapon.damage})`,
         hudX + 60,
-        hudY + 35
+        hudY + 65
       );
     }
   }

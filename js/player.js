@@ -7,6 +7,8 @@ class Player {
     this.height = 64;
     this.vx = 0;
     this.vy = 0;
+    this.health = 100;
+    this.maxHealth = 100;
 
     this.grounded = true;
     this.facingRight = true;
@@ -20,18 +22,18 @@ class Player {
       idle: { row: 0, frames: 1 },
       run: { row: 1, frames: 6 },
       jump: { row: 2, frames: 4 },
-      attack: { row: 3, frames: 3 },
+      attack: { row: 3, frames: 5 },
     };
 
     this.currentAction = "idle";
     this.frameIndex = 0;
     this.frameTick = 0;
-    this.frameSpeed = 8; // 数字越小动画越快
+    this.frameSpeed = 10; // 数字越小动画越快
 
     // 攻击状态
     this.isAttacking = false;
     this.attackFrame = 0;
-    this.attackFrames = 3;
+    this.attackFrames = 5;
 
     // 武器系统
     this.weapons = [
@@ -44,6 +46,31 @@ class Player {
     // Debug
     this.debug = true;
   }
+  attackMonsters(monsters) {
+    if (!this.currentWeapon || !this.isAttacking) return;
+
+    if (this.currentWeapon.hitbox && !this.currentWeapon.hasHit) {
+      for (const monster of monsters) {
+        if (
+          !monster.isDead &&
+          this.isColliding(this.currentWeapon.hitbox, monster)
+        ) {
+          monster.takeDamage(this.currentWeapon.damage);
+          this.currentWeapon.hasHit = true; // ✅ 一次攻击动作只触发一次
+          break; // 命中一个怪物就退出（如果要群攻可以去掉）
+        }
+      }
+    }
+  }
+
+  isColliding(a, b) {
+    return (
+      a.x < b.x + b.width &&
+      a.x + a.width > b.x &&
+      a.y < b.y + b.height &&
+      a.y + a.height > b.y
+    );
+  }
 
   switchWeapon() {
     this.currentWeaponIndex =
@@ -52,7 +79,7 @@ class Player {
     console.log("切换武器 → " + this.currentWeapon.name);
   }
 
-  update(keys) {
+  update(keys, pressed) {
     // 移动（AD / 方向键）
     if (keys["ArrowLeft"] || keys["a"]) {
       this.vx = -2;
@@ -83,17 +110,18 @@ class Player {
     this.x += this.vx;
 
     // 攻击
-    if (keys["j"] && !this.isAttacking) {
+    if (pressed["j"] && !this.isAttacking) {
       this.isAttacking = true;
       this.attackFrame = 0;
       this.currentAction = "attack";
       if (this.currentWeapon) this.currentWeapon.attack(this);
+      pressed["j"] = false;
     }
 
     // 切换武器（Q键）
-    if (keys["q"]) {
+    if (pressed["q"]) {
       this.switchWeapon();
-      keys["q"] = false; // 防止长按快速切换
+      pressed["q"] = false; // 防止长按快速切换
     }
 
     // --------------------------

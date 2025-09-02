@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Game Over</title>
+    <style>
+      /* 全局样式 */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background: radial-gradient(circle at center, #1a1a1a, #000000 80%);
+        font-family: "KaiTi", "STKaiti", serif;
+        overflow: hidden;
+        color: white;
+      }
+
+      /* 动画背景墨迹 */
+      body::before {
+        content: "";
+        position: absolute;
+        top: -20%;
+        left: -20%;
+        width: 140%;
+        height: 140%;
+        background: url("./assets/effects/ink_texture.png") repeat;
+        opacity: 0.08;
+        animation: moveInk 40s linear infinite;
+        z-index: -1;
+      }
+
+      @keyframes moveInk {
+        from {
+          transform: translate(0, 0);
+        }
+        to {
+          transform: translate(-200px, -200px);
+        }
+      }
+
+      /* Game Over 文字 */
+      h1 {
+        font-size: 6em;
+        color: crimson;
+        text-shadow: 0 0 10px rgba(255, 0, 0, 0.7),
+          0 0 20px rgba(255, 0, 0, 0.6), 0 0 40px rgba(255, 0, 0, 0.4);
+        animation: flicker 2s infinite;
+      }
+
+      @keyframes flicker {
+        0%,
+        19%,
+        21%,
+        23%,
+        25%,
+        54%,
+        56%,
+        100% {
+          opacity: 1;
+        }
+        20%,
+        24%,
+        55% {
+          opacity: 0.4;
+        }
+      }
+
+      /* 副标题 */
+      p {
+        margin-top: 20px;
+        font-size: 1.5em;
+        color: #ddd;
+        opacity: 0.8;
+      }
+
+      /* 按钮 */
+      a {
+        margin-top: 40px;
+        padding: 12px 28px;
+        font-size: 1.2em;
+        background: linear-gradient(145deg, #b22222, #8b0000);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+        transition: all 0.3s ease;
+      }
+
+      a:hover {
+        background: linear-gradient(145deg, #ff4040, #b22222);
+        transform: scale(1.1);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>GAME OVER</h1>
+    <p>你倒在了江湖的路上…</p>
+    <a href="index.html">重新开始</a>
+  </body>
+</html>
