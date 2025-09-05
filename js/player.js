@@ -3,8 +3,8 @@ class Player {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.width = 64;
-    this.height = 64;
+    this.width = 128;
+    this.height = 128;
     this.vx = 0;
     this.vy = 0;
     this.health = 100;
@@ -15,12 +15,12 @@ class Player {
 
     // Sprite sheet
     this.sprite = new Image();
-    this.sprite.src = "./assets/player.png";
+    this.sprite.src = "./assets/sprite_sheet.png";
 
     // 动作动画表
     this.animations = {
       idle: { row: 0, frames: 1 },
-      run: { row: 1, frames: 6 },
+      run: { row: 1, frames: 12 },
       jump: { row: 2, frames: 4 },
       attack: { row: 3, frames: 5 },
     };
@@ -28,7 +28,7 @@ class Player {
     this.currentAction = "idle";
     this.frameIndex = 0;
     this.frameTick = 0;
-    this.frameSpeed = 10; // 普通动作的动画速度
+    this.frameSpeed = 3; // 普通动作的动画速度
 
     // 攻击状态
     this.isAttacking = false;
@@ -155,8 +155,8 @@ class Player {
     // 重力和位置更新
     this.vy += 0.5;
     this.y += this.vy;
-    if (this.y >= 300) {
-      this.y = 300;
+    if (this.y >= 250) {
+      this.y = 250;
       this.vy = 0;
       this.grounded = true;
     }
@@ -178,25 +178,26 @@ class Player {
 
   draw(ctx, cameraX) {
     const anim = this.animations[this.currentAction];
-    const frameW = this.sprite.width / anim.frames;
-    const frameH = this.sprite.height / Object.keys(this.animations).length;
+    const frameW = 1280; // 单帧宽度
+    const frameH = 1280; // 单帧高度
 
+    // 计算大图上的裁切位置
     const sx = this.frameIndex * frameW;
     const sy = anim.row * frameH;
 
     ctx.save();
-    if (!this.facingRight) {
+    if (this.facingRight) {
       ctx.scale(-1, 1);
       ctx.drawImage(
         this.sprite,
         sx,
         sy,
         frameW,
-        frameH,
+        frameH, // 从大图裁切
         -(this.x - cameraX + this.width),
-        this.y,
+        this.y, // 翻转后修正位置
         this.width,
-        this.height
+        this.height // 缩放绘制大小
       );
     } else {
       ctx.drawImage(
@@ -218,7 +219,7 @@ class Player {
       this.currentWeapon.draw(ctx, this, cameraX, this.debug);
     }
 
-    // Debug
+    // Debug 信息
     if (this.debug) {
       ctx.fillStyle = "white";
       ctx.font = "14px monospace";

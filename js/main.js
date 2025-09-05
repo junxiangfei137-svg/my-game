@@ -2,7 +2,7 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const map = new GameMap();
-const player = new Player(100, 300);
+const player = new Player(100, 200);
 const camera = new Camera(player, canvas.width, map.scaledWidth);
 const hud = new HUD(player);
 
