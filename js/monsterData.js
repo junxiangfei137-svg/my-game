@@ -1,27 +1,36 @@
-// monsterData.js
 const MonsterData = {
-  slime: {
-    name: "史莱姆",
+  bocchi2: {
+    name: "bocchi2",
     maxHealth: 30,
     attackDamage: 3,
-    speed: 0.8,
-    color: "green", // 备用
-    spritePath: "./assets/monsters/slime.png",
+    speed: 1.2,
+    width: 80,
+    height: 80,
+    spritePath: "./assets/monsters/bocchi-2.png",
   },
-  goblin: {
-    name: "哥布林",
+  bocchi1: {
+    name: "bocchi1",
     maxHealth: 50,
     attackDamage: 5,
-    speed: 1.2,
-    color: "purple",
-    spritePath: "./assets/monsters/goblin.png",
+    speed: 0.8,
+    width: 80,
+    height: 80,
+    spritePath: "./assets/monsters/bocchi-1.png",
   },
-  orc: {
-    name: "兽人",
-    maxHealth: 100,
-    attackDamage: 12,
+  bocchi: {
+    name: "bocchi",
+    maxHealth: 200,
+    attackDamage: 15,
     speed: 0.6,
-    color: "brown",
-    spritePath: "./assets/monsters/orc.png",
+    width: 200,
+    height: 200,
+    spritePath: "./assets/monsters/bocchi.png",
+    isBoss: true,
+    summonCooldown: 4000, // 4秒召唤一次
+    summonTypes: ["bocchi1", "bocchi2"], // 轮番召唤
+    hitboxOffsetX: 20,
+    hitboxOffsetY: 20,
+    hitboxWidth: 160,
+    hitboxHeight: 160,
   },
 };

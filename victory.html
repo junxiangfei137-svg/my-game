@@ -2,7 +2,7 @@
 <html lang="zh">
   <head>
     <meta charset="UTF-8" />
-    <title>Game Over</title>
+    <title>Victory</title>
     <style>
       /* 全局样式 */
       * {
@@ -17,7 +17,7 @@
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        background: radial-gradient(circle at center, #1a1a1a, #000000 80%);
+        background: radial-gradient(circle at center, #0a1a0a, #001000 80%);
         font-family: "KaiTi", "STKaiti", serif;
         overflow: hidden;
         color: white;
@@ -46,12 +46,12 @@
         }
       }
 
-      /* Game Over 文字 */
+      /* Victory 文字 */
       h1 {
         font-size: 6em;
-        color: crimson;
-        text-shadow: 0 0 10px rgba(255, 0, 0, 0.7),
-          0 0 20px rgba(255, 0, 0, 0.6), 0 0 40px rgba(255, 0, 0, 0.4);
+        color: gold; /* 主文字金色 */
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.7),
+          0 0 20px rgba(255, 223, 0, 0.6), 0 0 40px rgba(255, 239, 0, 0.4);
         animation: flicker 2s infinite;
       }
 
@@ -86,7 +86,7 @@
         margin-top: 40px;
         padding: 12px 28px;
         font-size: 1.2em;
-        background: linear-gradient(145deg, #b22222, #8b0000);
+        background: linear-gradient(145deg, #ffd700, #ffc107); /* 金色渐变 */
         color: white;
         text-decoration: none;
         border-radius: 12px;
@@ -95,16 +95,15 @@
       }
 
       a:hover {
-        background: linear-gradient(145deg, #ff4040, #b22222);
+        background: linear-gradient(145deg, #ffe135, #ffd700); /* 浅金渐变 */
         transform: scale(1.1);
         box-shadow: 0 6px 14px rgba(0, 0, 0, 0.8);
       }
     </style>
   </head>
   <body>
-    <audio autoplay src="./assets/music/gameover.mp3"></audio>
-    <h1>GAME OVER</h1>
-    <p>你倒在了她的刀下...</p>
-    <a href="index.html">重新开始</a>
+    <h1>VICTORY!</h1>
+    <p>你战胜了强敌，江湖因你而精彩！</p>
+    <a href="index.html">返回主菜单</a>
   </body>
 </html>
