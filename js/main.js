@@ -10,7 +10,7 @@ const hud = new HUD(player);
 // 背景音乐
 const bgm = new Audio("./assets/music/bgm.mp3");
 bgm.loop = true;
-bgm.volume = 0.5;
+bgm.volume = 0.1;
 
 // 用户交互触发播放（浏览器要求）
 function startBGM() {
@@ -74,8 +74,8 @@ function endGameOver() {
 // main.js 添加平台
 const platforms = [
   new Platform(0, 280, 400, 20, "./assets/terrain/ground.png"),
-  new Platform(350, 220, 180, 20, "./assets/terrain/ground.png"),
-  new Platform(600, 180, 150, 20, "./assets/terrain/ground.png"),
+  new Platform(500, 180, 150, 20, "./assets/terrain/ground.png"),
+  new Platform(700, 180, 150, 20, "./assets/terrain/ground.png"),
   new Platform(950, 280, 200, 20, "./assets/terrain/ground.png"),
   new Platform(1200, 160, 180, 20, "./assets/terrain/ground.png"),
   new Platform(1500, 230, 200, 20, "./assets/terrain/ground.png"),

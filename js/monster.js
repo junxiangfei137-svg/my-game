@@ -17,9 +17,11 @@ class Monster {
     this.y = y;
 
     // -------------------
-    // 重力相关
+    // 运动相关
     // -------------------
-    this.vy = 0;
+    this.vx = 0; // 横向速度
+    this.vy = 0; // 纵向速度
+    this.knockback = 0.8; // 击退衰减系数
     this.grounded = false;
 
     this.isDead = false;
@@ -57,14 +59,22 @@ class Monster {
 
   update(player, monsters, platforms = []) {
     if (this.isDead) return;
-
     const now = Date.now();
 
     // -------------------
-    // 横向跟踪玩家
+    // 击退效果优先
     // -------------------
-    if (player.x < this.x) this.x -= this.speed;
-    else if (player.x > this.x) this.x += this.speed;
+    if (Math.abs(this.vx) > 0.1) {
+      this.x += this.vx;
+      this.vx *= this.knockback; // 衰减击退
+    } else {
+      this.vx = 0;
+      // -------------------
+      // 横向跟踪玩家
+      // -------------------
+      if (player.x < this.x) this.x -= this.speed;
+      else if (player.x > this.x) this.x += this.speed;
+    }
 
     // -------------------
     // 攻击玩家逻辑
@@ -76,13 +86,13 @@ class Monster {
       player.y + player.height > this.y + this.hitbox.offsetY;
 
     if (isInRange && now - this.lastAttackTime >= this.attackCooldown) {
-      player.health = Math.max(0, player.health - this.attackDamage);
+      player.takeDamage(this.attackDamage, this); // ← 改成调用玩家方法
       this.lastAttackTime = now;
       console.log(`${this.name} 攻击了玩家！造成 ${this.attackDamage} 点伤害`);
     }
 
     // -------------------
-    // Boss轮番召唤小怪（最多5只累计）
+    // Boss召唤逻辑
     // -------------------
     if (
       this.isBoss &&
@@ -109,7 +119,7 @@ class Monster {
     this.y += this.vy;
 
     // -------------------
-    // 平台/地面碰撞
+    // 地面/平台碰撞
     // -------------------
     this.grounded = false;
     const groundY = 400; // 地面高度
@@ -119,7 +129,6 @@ class Monster {
       this.grounded = true;
     }
 
-    // 平台碰撞
     for (const p of platforms) {
       if (
         this.x + this.width > p.x &&
@@ -135,15 +144,23 @@ class Monster {
     }
   }
 
-  takeDamage(amount, monsters, endGameCallback) {
+  takeDamage(amount, monsters, endGameCallback, attacker = null) {
     if (this.isDead) return;
+
     this.health = Math.max(0, this.health - amount);
+
+    if (attacker) {
+      // 根据攻击者方向设置击退
+      const dir = this.x < attacker.x ? -1 : 1;
+      this.vx = dir * 10; // 击退初速度
+      this.vy = -5; // 可选：击退时稍微向上弹起
+    }
+
     if (this.health <= 0) {
       this.isDead = true;
       console.log(`${this.name} 被击杀！`);
 
       if (this.isBoss) {
-        // Boss死亡清理召唤物
         for (let m of monsters) if (m.master === this) m.isDead = true;
         if (endGameCallback) endGameCallback();
       }

@@ -19,13 +19,20 @@ class Player {
     this.sprite = new Image();
     this.sprite.src = "./assets/sprite_sheet.png";
 
+    this.wallSound = new Audio("./assets/music/collision.mp3");
+    this.wallSound.volume = 0.8;
+    this.wallSound.playbackRate = 1.5;
+
     // 动作动画表
     this.animations = {
       idle: { row: 0, frames: 1 },
       run: { row: 1, frames: 12 },
-      jump: { row: 2, frames: 4 },
-      attack: { row: 3, frames: 5 },
+      jump: { row: 2, frames: 8 },
+      attack: { row: 3, frames: 10 },
     };
+    this.jumpSound = new Audio("./assets/music/jump.mp3");
+    this.jumpSound.volume = 0.8;
+    this.jumpSound.playbackRate = 1.5;
 
     this.currentAction = "idle";
     this.frameIndex = 0;
@@ -38,7 +45,12 @@ class Player {
     this.attackFrames = 5;
     this.attackFrameTick = 0;
     this.attackFrameSpeed = 8;
+    this.attackSound = new Audio("./assets/music/attack.mp3");
+    this.attackSound.volume = 0.8; // 音量可调
+    this.attackSound.playbackRate = 1.5;
 
+    this.hitSound = new Audio("./assets/music/hit.mp3");
+    this.hitSound.volume = 0.8;
     // 武器系统
     this.weapons = [
       new Weapon("Sword", 20, "./assets/weapons/sword.png"),
@@ -50,6 +62,15 @@ class Player {
     this.debug = true;
   }
 
+  takeDamage(amount, attacker = null) {
+    this.health = Math.max(0, this.health - amount);
+
+    // 播放受击音效
+    if (this.hitSound) {
+      this.hitSound.currentTime = 0;
+      this.hitSound.play().catch(() => {});
+    }
+  }
   attackMonsters(monsters, endGameCallback) {
     if (!this.currentWeapon || !this.isAttacking) return;
 
@@ -62,7 +83,8 @@ class Player {
           monster.takeDamage(
             this.currentWeapon.damage,
             monsters,
-            endGameCallback
+            endGameCallback,
+            this // ← 传入玩家作为攻击者，便于怪物计算击退方向
           );
           this.currentWeapon.hasHit = true;
           break;
@@ -97,6 +119,11 @@ class Player {
       this.attackFrameTick = 0;
       this.currentAction = "attack";
       pressed["j"] = false;
+      // 播放攻击音效（不论是否击中）
+      if (this.attackSound) {
+        this.attackSound.currentTime = 0;
+        this.attackSound.play().catch(() => {});
+      }
     }
 
     // ------------------
@@ -183,6 +210,8 @@ class Player {
       if (this.vy < 0 && this.y >= py + ph && nextY <= py + ph && overX) {
         this.y = py + ph;
         this.vy = 0;
+        const wallAudio = this.wallSound.cloneNode();
+        wallAudio.play().catch(() => {});
       }
 
       // 左右碰撞
@@ -202,14 +231,22 @@ class Player {
     }
 
     // ------------------
-    // 二段跳逻辑
+    // 二段跳逻辑（按键边沿触发）
     // ------------------
     if (grounded) this.jumpCount = 0; // 落地重置
 
-    if ((keys[" "] || keys["w"]) && this.jumpCount < this.maxJump) {
-      this.vy = -12;
-      this.jumpCount++;
+    if ((pressed[" "] || pressed["w"]) && this.jumpCount < this.maxJump) {
+      this.vy = -12; // 给向上初速度
+      this.jumpCount++; // 跳跃次数增加
       grounded = false; // 离开地面
+      pressed[" "] = false; // 防止连发
+      pressed["w"] = false;
+
+      // 播放跳跃音效
+      if (this.jumpSound) {
+        this.jumpSound.currentTime = 0;
+        this.jumpSound.play().catch(() => {});
+      }
     }
 
     // ------------------
@@ -229,6 +266,9 @@ class Player {
       this.grounded = true;
       this.jumpCount = 0;
     }
+    const mapWidth = 9600; // 地图总宽度，按你的设计修改
+    if (this.x < 0) this.x = 0; // 左边界
+    if (this.x + this.width > mapWidth) this.x = mapWidth - this.width; // 右边界
 
     // ------------------
     // 切换武器
