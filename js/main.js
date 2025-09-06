@@ -1,24 +1,25 @@
+// ---------------- canvas & context ----------------
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// ---------------- 游戏对象 ----------------
 const map = new GameMap();
 const player = new Player(100, 200);
-const camera = new Camera(player, map.scaledWidth); // 不再传 canvas.width
-
+const camera = new Camera(player, map.width, 640); // 640 = 原始屏幕宽度
 const hud = new HUD(player);
 
-// 背景音乐
+// ---------------- 背景音乐 ----------------
 const bgm = new Audio("./assets/music/bgm.mp3");
 bgm.loop = true;
 bgm.volume = 0.1;
 
-// 用户交互触发播放（浏览器要求）
 function startBGM() {
   bgm.play().catch((err) => console.log("BGM播放被阻止", err));
 }
 window.addEventListener("click", startBGM, { once: true });
 window.addEventListener("keydown", startBGM, { once: true });
 
+// ---------------- 缩放 & 偏移 ----------------
 let scale = 1;
 let offsetX = 0,
   offsetY = 0;
@@ -27,17 +28,17 @@ function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const scaleX = canvas.width / 640; // 原始宽度
-  const scaleY = canvas.height / 480; // 原始高度
+  const scaleX = canvas.width / 640;
+  const scaleY = canvas.height / 480;
   scale = Math.min(scaleX, scaleY);
 
-  // 计算居中偏移
   offsetX = (canvas.width - 640 * scale) / 2;
   offsetY = (canvas.height - 480 * scale) / 2;
 }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
+// ---------------- 输入 ----------------
 const Input = { down: {}, pressed: {} };
 window.addEventListener("keydown", (e) => {
   if (!Input.down[e.key]) Input.pressed[e.key] = true;
@@ -47,11 +48,13 @@ window.addEventListener("keyup", (e) => {
   Input.down[e.key] = false;
 });
 
-// 游戏状态
+// ---------------- 游戏状态 ----------------
 let gameOver = false;
 let gameWin = false;
+let gamePaused = true; // 与弹窗共用
+let tutorialActive = true; // 首次教程弹窗
 
-// 胜利回调
+// ---------------- 游戏回调 ----------------
 function endGameWin() {
   if (!gameOver && !gameWin) {
     gameWin = true;
@@ -61,7 +64,6 @@ function endGameWin() {
   }
 }
 
-// 游戏失败回调
 function endGameOver() {
   if (!gameOver) {
     gameOver = true;
@@ -71,7 +73,7 @@ function endGameOver() {
   }
 }
 
-// main.js 添加平台
+// ---------------- 平台 ----------------
 const platforms = [
   new Platform(0, 280, 400, 20, "./assets/terrain/ground.png"),
   new Platform(500, 180, 150, 20, "./assets/terrain/ground.png"),
@@ -101,17 +103,69 @@ const platforms = [
   new Platform(8900, 200, 600, 20, "./assets/terrain/ground.png"),
 ];
 
-// 初始化怪物
+// ---------------- 怪物 ----------------
 const monsters = [
   new Monster("bocchi2", 400, 300),
   new Monster("bocchi1", 600, 300),
   new Monster("bocchi", 900, 200),
 ];
 
-// ---------- 游戏循环 ----------
+// ---------------- 弹窗元素 ----------------
+const skipBtn = document.getElementById("skipBtn");
+const skipModal = document.getElementById("skipModal");
+const resumeBtn = document.getElementById("resumeBtn");
+const confirmSkipBtn = document.getElementById("confirmSkipBtn");
+const tutorialModal = document.getElementById("tutorialModal");
+const startGameBtn = document.getElementById("startGameBtn");
+
+// ---------------- 跳过游戏弹窗逻辑 ----------------
+skipBtn.addEventListener("click", () => {
+  gamePaused = true;
+  skipModal.classList.add("show");
+});
+resumeBtn.addEventListener("click", () => {
+  gamePaused = false;
+  skipModal.classList.remove("show");
+});
+confirmSkipBtn.addEventListener("click", () => {
+  window.location.href = "victory.html";
+});
+
+// ---------------- 教程弹窗逻辑 ----------------
+startGameBtn.addEventListener("click", () => {
+  tutorialActive = false;
+  gamePaused = false;
+  tutorialModal.classList.remove("show");
+});
+
+// ---------------- 游戏循环 ----------------
 function gameLoop() {
   if (gameOver || gameWin) return;
 
+  // 如果暂停或教程弹窗显示，更新渲染但不执行逻辑
+  if (gamePaused || tutorialActive) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(scale, scale);
+    ctx.beginPath();
+    ctx.rect(0, 0, 640, 480);
+    ctx.clip();
+
+    map.draw(ctx, camera.x);
+    for (const p of platforms) p.draw(ctx, camera.x);
+    player.draw(ctx, camera.x);
+    for (const m of monsters) m.draw(ctx, camera.x);
+    hud.draw(ctx, 640, 480);
+
+    ctx.restore();
+
+    requestAnimationFrame(gameLoop);
+    return;
+  }
+
+  // 正常游戏逻辑
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   player.update(Input.down, Input.pressed, monsters, platforms, endGameWin);
@@ -124,35 +178,28 @@ function gameLoop() {
 
   camera.update();
 
-  // ========= 绘制部分 =========
+  // 绘制游戏场景
   ctx.save();
-
-  // 应用偏移和缩放，让游戏画面居中
   ctx.translate(offsetX, offsetY);
   ctx.scale(scale, scale);
-
-  // 限制绘制区域在 640×480 内
   ctx.beginPath();
   ctx.rect(0, 0, 640, 480);
   ctx.clip();
 
-  // 绘制地图、平台、角色、怪物
   map.draw(ctx, camera.x);
   for (const p of platforms) p.draw(ctx, camera.x);
   player.draw(ctx, camera.x);
-  for (const monster of monsters) {
-    monster.update(player, monsters);
-    monster.draw(ctx, camera.x);
+  for (const m of monsters) {
+    m.update(player, monsters);
+    m.draw(ctx, camera.x);
   }
-
-  // 绘制 HUD
   hud.draw(ctx, 640, 480);
 
   ctx.restore();
-  // ========= 绘制结束 =========
 
   Input.pressed = {};
   requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
+// ---------------- 启动循环 ----------------
+requestAnimationFrame(gameLoop);

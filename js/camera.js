@@ -1,21 +1,19 @@
-// Camera.js
 class Camera {
-  constructor(player, mapWidth) {
+  constructor(player, map, screenWidth) {
     this.player = player;
-    this.mapWidth = mapWidth;
-    this.x = 0; // 左边界
-    this.screenWidth = window.innerWidth; // 默认值，会动态调整
+    this.map = map; // 原图单位
+    this.screenWidth = screenWidth; // 原始屏幕宽度 640
+    this.x = 0;
   }
 
   update() {
-    // 动态更新相机可视宽度
-    this.screenWidth = window.innerWidth / scale; // scale 在 main.js 定义
     const halfScreen = this.screenWidth / 2;
     this.x = this.player.x - halfScreen;
 
+    // 限制摄像机在地图范围内
     if (this.x < 0) this.x = 0;
-    if (this.x + this.screenWidth > this.mapWidth) {
-      this.x = Math.max(this.mapWidth - this.screenWidth, 0);
+    if (this.x + this.screenWidth > this.map.width) {
+      this.x = this.map.width - this.screenWidth;
     }
   }
 }

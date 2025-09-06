@@ -13,11 +13,201 @@
         margin: auto;
         background: #222;
       }
+      #skipBtn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 14px 24px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #fff;
+        background: linear-gradient(45deg, #ff6b6b, #f06595);
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+        transition: all 0.3s ease;
+        touch-action: manipulation;
+      }
+      #skipBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 7px 14px rgba(0, 0, 0, 0.5);
+        background: linear-gradient(45deg, #f06595, #ff8787);
+      }
+
+      /* ---------- 弹窗样式 ---------- */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 999;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .modal.show {
+        display: flex;
+        opacity: 1;
+      }
+
+      .modal-content {
+        background-color: #1e1e2f;
+        padding: 35px 50px;
+        border-radius: 16px;
+        text-align: center;
+        color: #fff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        transform: scale(0.8);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        max-width: 90%;
+      }
+      .modal.show .modal-content {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      .modal-content p {
+        font-size: 20px;
+        margin-bottom: 30px;
+        line-height: 1.5;
+      }
+
+      .modal-content button {
+        margin: 0 12px;
+        padding: 12px 26px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+      }
+
+      #resumeBtn {
+        background: #495057;
+        color: #fff;
+      }
+      #resumeBtn:hover {
+        background: #343a40;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      #confirmSkipBtn {
+        background: linear-gradient(45deg, #ff6b6b, #f06595);
+        color: #fff;
+      }
+      #confirmSkipBtn:hover {
+        background: linear-gradient(45deg, #f06595, #ff8787);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      #tutorialModal .modal-content {
+        background-color: #1e1e2f;
+        padding: 40px 50px;
+        border-radius: 16px;
+        text-align: center;
+        color: #fff;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        transform: scale(0.8);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        max-width: 400px;
+      }
+      #tutorialModal.show .modal-content {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      #tutorialModal h2 {
+        margin-top: 0;
+        font-size: 24px;
+        font-weight: bold;
+      }
+
+      #tutorialModal button {
+        margin-top: 20px;
+        padding: 12px 28px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        background: linear-gradient(45deg, #ff6b6b, #f06595);
+        color: #fff;
+        transition: all 0.3s ease;
+      }
+      #tutorialModal button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(45deg, #f06595, #ff8787);
+      }
+
+      @media (max-width: 1000px) {
+        #skipBtn {
+          top: 15px;
+          right: 15px;
+          padding: 12px 20px;
+          font-size: 16px;
+        }
+        .modal-content {
+          padding: 25px 30px;
+        }
+        .modal-content p {
+          font-size: 18px;
+        }
+        .modal-content button {
+          padding: 10px 20px;
+          font-size: 15px;
+          min-width: 100px;
+          margin: 8px 6px;
+        }
+      }
     </style>
   </head>
   <body>
     <canvas id="gameCanvas" width="640" height="480"></canvas>
     <audio id="bgm" src="./assets/music/bgm.mp3" loop></audio>
+    <!-- 新手引导弹窗 -->
+    <div id="tutorialModal" class="modal show">
+      <div class="modal-content">
+        <h2>游戏操作指南</h2>
+        <ul
+          style="
+            text-align: left;
+            margin: 20px 0;
+            line-height: 1.6;
+            font-size: 16px;
+          "
+        >
+          <li>左右移动：<b>A / D</b></li>
+          <li>跳跃：<b>W / 空格</b></li>
+          <li>二段跳：连续按两次 <b>W / 空格</b></li>
+          <li>攻击：<b>J</b></li>
+          <li>切换武器：<b>Q</b></li>
+        </ul>
+        <button id="startGameBtn">开始游戏</button>
+      </div>
+    </div>
+
+    <!-- 跳过游戏按钮 -->
+    <button id="skipBtn">跳过游戏</button>
+
+    <!-- 弹窗 -->
+    <div id="skipModal" class="modal">
+      <div class="modal-content">
+        <p>你确定要跳过游戏吗？</p>
+        <button id="resumeBtn">返回游戏</button>
+        <button id="confirmSkipBtn">跳过游戏</button>
+      </div>
+    </div>
+
     <script src="js/map.js"></script>
     <script src="js/camera.js"></script>
     <script src="js/player.js"></script>

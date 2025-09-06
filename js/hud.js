@@ -32,7 +32,11 @@ class HUD {
     );
     ctx.fillStyle = "limegreen";
     ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
-
+    ctx.fillText(
+      `Player: x=${Math.round(this.player.x)}, y=${Math.round(this.player.y)}`,
+      10,
+      40
+    );
     // 血量文字
     ctx.fillStyle = "white";
     ctx.font = "14px monospace";
