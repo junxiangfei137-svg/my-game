@@ -12,8 +12,8 @@ class Monster {
     this.speed = data.speed;
     this.color = data.color || "gray";
 
-    this.width = 50;
-    this.height = 50;
+    this.width = 200;
+    this.height = 200;
     this.x = x;
     this.y = y;
 

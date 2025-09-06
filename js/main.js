@@ -25,9 +25,9 @@ window.addEventListener("keyup", (e) => {
 
 //初始化怪物
 const monsters = [
-  new Monster("slime", 400, 300),
-  new Monster("goblin", 600, 300),
-  new Monster("orc", 900, 300),
+  new Monster("slime", 400, 200),
+  new Monster("goblin", 600, 200),
+  new Monster("orc", 900, 200),
 ];
 
 function gameLoop() {
